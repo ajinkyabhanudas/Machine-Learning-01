@@ -1,0 +1,87 @@
+#effective fraud detection analysis
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import recall_score, precision_score, accuracy_score
+from sklearn.svm import SVC
+from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression
+
+
+def r_one():
+    
+    # Your code here
+    df = pd.read_csv('fraud_data.csv')
+    c = np.bincount(df.Class)
+    c=c[1]/len(df)
+    
+    return c
+
+r_one()
+
+
+df = pd.read_csv('fraud_data.csv')
+
+X = df.iloc[:,:-1]
+y = df.iloc[:,-1]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+def r_two():
+    from sklearn.dummy import DummyClassifier
+    from sklearn.metrics import recall_score
+    
+    # Your code here
+    from sklearn.dummy import DummyClassifier
+    from sklearn.metrics import recall_score, accuracy_score
+    
+    dummy_clf = DummyClassifier(strategy = 'most_frequent').fit(X_train, y_train)
+    predicted = dummy_clf.predict(X_test)
+
+    d=accuracy_score(y_test, predicted), recall_score(y_test, predicted)
+
+    
+    return d
+
+
+def r_three():
+    
+    svm = SVC().fit(X_train, y_train)
+    predicted = svm.predict(X_test)
+
+    t=accuracy_score(y_test, predicted), recall_score(y_test, predicted), precision_score(y_test, predicted)
+    
+    return t
+
+
+def r_four():
+    from sklearn.metrics import confusion_matrix
+    from sklearn.svm import SVC
+
+    svm = SVC(gamma=1e-07,C=1e9).fit(X_train, y_train)
+    pred = svm.decision_function(X_test) > -220
+    conf = confusion_matrix(y_test, pred)
+    
+    
+    return conf
+
+
+def r_five():    
+    
+    lr = LogisticRegression().fit(X_train, y_train)
+    g_values = {'penalty': ['l1', 'l2'], 'C': [0.01, 0.1, 1, 10, 100]}
+    g_clf_rec = GridSearchCV(lr, param_grid = g_values, scoring = 'recall')
+    g_clf_rec.fit(X_train, y_train)
+    t=np.array(g_clf_rec.cv_results_['mean_test_score']).reshape(5,2)
+
+    return t
+    
+# Use the following function to help visualize results from the grid search
+def GridSearch_Heatmap(scores):
+    %matplotlib notebook
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    plt.figure()
+    sns.heatmap(scores.reshape(5,2), xticklabels=['l1','l2'], yticklabels=[0.01, 0.1, 1, 10, 100])
+    plt.yticks(rotation=0);    
